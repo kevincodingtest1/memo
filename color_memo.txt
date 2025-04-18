@@ -1,0 +1,6 @@
+https://www.colorcombos.com/images/colors/{hex color codes}.png
+https://convertingcolors.com/rgb-color-{R}_{G}_{B}.html
+
+헥스 코드(hex code) 색상의 총 개수는 1677만 7216 가지
+사람이 인지 가능한 색상의 개수는 약 100만 ~ 700만가지
+본 프로그램으로 128단계 양자화하여 추출한 색상은 2,097,152가지 (사람이 인지 가능한 대표 색상 범위 내)

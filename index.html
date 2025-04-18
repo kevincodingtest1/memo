@@ -1,54 +1,157 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <!-- 문자 인코딩 선언 (한글 깨짐 방지) -->
     <meta charset="UTF-8" />
-    <!-- 검색엔진에 등록할 키워드 지정 -->
-    <meta name="keywords" content="태그/키워드" />
-    <!-- 검색결과에 표시될 페이지 설명 -->
-    <meta name="description" content="페이지 설명" />
-    <!-- 
-    검색엔진 로봇 색인 및 링크 추적 비허용 (테스트용)
-    - noindex: 검색 결과에 페이지 표시 안 함
-    - nofollow: 페이지 내 링크를 따라가지 않음
-    -->
-
-    <!--
-    검색엔진 로봇 색인 및 링크 추적 허용 (운영 시 사용)
-    - index: 페이지 색인 허용
-    - follow: 페이지 내 링크 따라감
-    -->
-    <meta name="robots" content="noindex, nofollow" />
-    <!-- 모바일 화면 크기 및 확대/축소 설정 (반응형) -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- IE 최신 렌더링 모드 사용 -->
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <!-- 페이지 작성자 명시 -->
-    <meta name="author" content="메노리스(menhir)" />
-    <!-- 문서 제작일 (ISO 8601 형식) -->
-    <meta name="date" content="2025-04-18T00:00:00+09:00" />
-    <!-- 문서 제목 (브라우저 탭 및 검색결과 제목) -->
-    <title>Color_Palette.ZIP</title>
-    <!-- SVG 형식의 파비콘(favicon) 설정: 벡터 이미지로 선명하지만 일부 구형 브라우저 미지원 가능 -->
-    <link rel="icon" href="color-palette.svg" type="image/svg+xml" />
-    <!-- 외부 CSS 파일 연결 -->
-    <link rel="stylesheet" href="styles.css" />
+    <title>Color Palette JSON Load Test</title>
+    <style>
+        #category-list {
+            display: flex;
+            gap: 8px;
+            padding: 8px;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 10px;
+        }
+        #category-list button {
+            padding: 6px 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            cursor: pointer;
+            background: #f0f0f0;
+            transition: background-color 0.3s ease;
+        }
+        #category-list button.selected {
+            background: #3498db;
+            color: white;
+            border-color: #2980b9;
+            font-weight: bold;
+        }
+        #palette-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            padding: 8px;
+        }
+        .palette-card {
+            width: 24px;
+            height: 24px;
+            border-radius: 3px;
+            border: 1px solid #ccc;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
-    <!-- 색상 팔레트 카드가 표시될 영역 -->
-    <div id="palette-list"></div>
 
-    <!-- 색상 추가 폼 -->
-    <form id="palette-form">
-        <!-- 색상 이름 입력 -->
-        <input type="text" id="color-name" placeholder="색상 이름" required />
-        <!-- 색상 선택 (컬러 피커) -->
-        <input type="color" id="color-value" value="#000000" required />
-        <!-- 제출 버튼 -->
-        <button type="submit">추가</button>
-    </form>
+<div id="category-list"></div>
+<div id="palette-list"></div>
 
-    <!-- 외부 자바스크립트 파일 연결 (defer: HTML 파싱 후 실행) -->
-    <script src="script.js" defer></script>
+<script>
+    const categoryList = document.getElementById('category-list');
+    const paletteList = document.getElementById('palette-list');
+
+    let categorizedPalettes = {};
+    let currentCategory = null;
+
+    // 카테고리별 분류 함수 (Hue 기준 단순 예시)
+    function hexToRgb(hex) {
+        hex = hex.replace('#', '');
+        if (hex.length === 3) hex = hex.split('').map(c => c+c).join('');
+        const bigint = parseInt(hex, 16);
+        return {
+            r: (bigint >> 16) & 255,
+            g: (bigint >> 8) & 255,
+            b: bigint & 255
+        };
+    }
+
+    function rgbToHsl({r, g, b}) {
+        r /= 255; g /= 255; b /= 255;
+        const max = Math.max(r, g, b), min = Math.min(r, g, b);
+        let h, s, l = (max + min) / 2;
+        if(max === min) {
+            h = s = 0;
+        } else {
+            const d = max - min;
+            s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+            switch(max){
+                case r: h = ((g - b) / d + (g < b ? 6 : 0)); break;
+                case g: h = ((b - r) / d + 2); break;
+                case b: h = ((r - g) / d + 4); break;
+            }
+            h /= 6;
+        }
+        return {h: h * 360, s, l};
+    }
+
+    function categorizeColor(hex) {
+        const hsl = rgbToHsl(hexToRgb(hex));
+        const h = hsl.h;
+        if (h < 15 || h >= 330) return 'Red';
+        if (h < 45) return 'Orange';
+        if (h < 75) return 'Yellow';
+        if (h < 150) return 'Green';
+        if (h < 210) return 'Cyan';
+        if (h < 270) return 'Blue';
+        if (h < 330) return 'Purple';
+        return 'Others';
+    }
+
+    function renderCategoryList() {
+        categoryList.innerHTML = '';
+        Object.keys(categorizedPalettes).forEach(cat => {
+            const btn = document.createElement('button');
+            btn.textContent = cat;
+            btn.onclick = () => {
+                currentCategory = cat;
+                highlightSelectedCategory(cat);
+                renderPalettes(categorizedPalettes[cat]);
+            };
+            categoryList.appendChild(btn);
+        });
+        // 첫 카테고리 자동 선택
+        const firstCat = Object.keys(categorizedPalettes)[0];
+        if (firstCat) {
+            currentCategory = firstCat;
+            highlightSelectedCategory(firstCat);
+            renderPalettes(categorizedPalettes[firstCat]);
+        }
+    }
+
+    function highlightSelectedCategory(cat) {
+        Array.from(categoryList.children).forEach(btn => {
+            btn.classList.toggle('selected', btn.textContent === cat);
+        });
+    }
+
+    function renderPalettes(palettes) {
+        paletteList.innerHTML = '';
+        palettes.forEach(color => {
+            const div = document.createElement('div');
+            div.className = 'palette-card';
+            div.title = color;
+            div.style.backgroundColor = color;
+            paletteList.appendChild(div);
+        });
+    }
+
+    async function loadColors() {
+        try {
+            const response = await fetch('filtered_colors_2097152.json');
+            if (!response.ok) throw new Error('네트워크 응답 실패');
+            const data = await response.json();
+
+            // data.categories 객체가 카테고리별 색상 배열을 담고 있음
+            categorizedPalettes = data.categories || {};
+
+            renderCategoryList();
+        } catch (e) {
+            console.error('색상 로드 실패:', e);
+            paletteList.textContent = '색상 데이터를 불러오지 못했습니다.';
+        }
+    }
+
+    loadColors();
+</script>
+
 </body>
 </html>
