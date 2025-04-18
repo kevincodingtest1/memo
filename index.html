@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <!-- 문자 인코딩 선언 (한글 깨짐 방지) -->
+    <meta charset="UTF-8" />
+    <!-- 검색엔진에 등록할 키워드 지정 -->
+    <meta name="keywords" content="태그/키워드" />
+    <!-- 검색결과에 표시될 페이지 설명 -->
+    <meta name="description" content="페이지 설명" />
+    <!-- 
+    검색엔진 로봇 색인 및 링크 추적 비허용 (테스트용)
+    - noindex: 검색 결과에 페이지 표시 안 함
+    - nofollow: 페이지 내 링크를 따라가지 않음
+    -->
+
+    <!--
+    검색엔진 로봇 색인 및 링크 추적 허용 (운영 시 사용)
+    - index: 페이지 색인 허용
+    - follow: 페이지 내 링크 따라감
+    -->
+    <meta name="robots" content="noindex, nofollow" />
+    <!-- 모바일 화면 크기 및 확대/축소 설정 (반응형) -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- IE 최신 렌더링 모드 사용 -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <!-- 페이지 작성자 명시 -->
+    <meta name="author" content="메노리스(menhir)" />
+    <!-- 문서 제작일 (ISO 8601 형식) -->
+    <meta name="date" content="2025-04-18T00:00:00+09:00" />
+    <!-- 문서 제목 (브라우저 탭 및 검색결과 제목) -->
+    <title>Color_Palette.ZIP</title>
+    <!-- SVG 형식의 파비콘(favicon) 설정: 벡터 이미지로 선명하지만 일부 구형 브라우저 미지원 가능 -->
+    <link rel="icon" href="color-palette.svg" type="image/svg+xml" />
+    <!-- 외부 CSS 파일 연결 -->
+    <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+    <!-- 색상 팔레트 카드가 표시될 영역 -->
+    <div id="palette-list"></div>
+
+    <!-- 색상 추가 폼 -->
+    <form id="palette-form">
+        <!-- 색상 이름 입력 -->
+        <input type="text" id="color-name" placeholder="색상 이름" required />
+        <!-- 색상 선택 (컬러 피커) -->
+        <input type="color" id="color-value" value="#000000" required />
+        <!-- 제출 버튼 -->
+        <button type="submit">추가</button>
+    </form>
+
+    <!-- 외부 자바스크립트 파일 연결 (defer: HTML 파싱 후 실행) -->
+    <script src="script.js" defer></script>
+</body>
+</html>
